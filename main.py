@@ -3,37 +3,26 @@ import random
 import os
 from keep_alive import keep_alive
 
-TRIGGER = "vanture"
+TRIGGER = "vanture"  # keyword to trigger text-based command
+
+OWNER_ID = 756126826774134876  # Only you can use the /active command
 
 intents = discord.Intents.default()
 intents.message_content = True
-intents.guilds = True
-intents.members = True
-
 client = discord.Client(intents=intents)
 tree = discord.app_commands.CommandTree(client)
 
 positive_responses = [
-    "Absolutely.", "Definitely.", "For sure.", "You know it.", "Of course.", "Without a doubt."
+    "Obviously.", "Hell yeah.", "Without a doubt.", "For sure.", "Bet.", "Yup.",
+    "100%.", "All signs point to yes.", "That's a flex.", "No cap."
 ]
 
-roast_responses = [
-    "You wish.", "In your dreams.", "LOL no.", "As if!", "Try again, clown.", "😂 Not happening."
-]
-
-positive_gifs = [
-    "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
-    "https://media.giphy.com/media/26BRQTezZrKak4BeE/giphy.gif"
-]
-
-roast_gifs = [
-    "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif",
-    "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif"
+negative_responses = [
+    "Bruh... no.", "Absolutely not.", "Nah fam.", "That's dumb.", "Try again, clown 🤡",
+    "What are you even asking?", "L bozo.", "You serious?", "Nuh uh.", "Delete that thought."
 ]
 
 emojis = ["😈", "👽", "🤖", "✨", "😎", "🙃", "🔥", "🌌", "🎲", "🪐"]
-
-OWNER_ID = 756126826774134876
 
 @client.event
 async def on_ready():
@@ -46,53 +35,36 @@ async def on_message(message):
         return
 
     if message.content.lower().startswith(TRIGGER):
-        await message.channel.typing()
-
         question = message.content[len(TRIGGER):].strip()
+
         if not question:
-            await message.reply("Ask something after the keyword, bro 🤔")
+            await message.reply("Bro you forgot to ask something 💀")
             return
 
-        is_positive = random.choice([True, False])
-        answer = random.choice(positive_responses if is_positive else roast_responses)
-        gif = random.choice(positive_gifs if is_positive else roast_gifs)
-        color = 0x00ff99 if is_positive else 0xff0055
+        await message.channel.typing()
 
-        embed = discord.Embed(
-            title=answer,
-            description=f"**{message.author.display_name} asked:** {question}",
-            color=color
-        )
-        embed.set_image(url=gif)
+        if random.random() > 0.5:
+            answer = random.choice(positive_responses)
+        else:
+            answer = random.choice(negative_responses)
 
-        await message.reply(embed=embed)
-        await message.add_reaction(random.choice(emojis))
+        emoji = random.choice(emojis)
+        reply = f"{emoji} {answer}"
+        await message.reply(reply)
 
-# ---------------------------------------
-# Slash Command: /pfp
-# ---------------------------------------
-
-@tree.command(name="pfp", description="Get someone’s profile picture")
-async def pfp_command(interaction: discord.Interaction, user: discord.Member = None):
+# /pfp command
+@tree.command(name="pfp", description="Get someone's profile picture")
+async def pfp_command(interaction: discord.Interaction, user: discord.User = None):
     user = user or interaction.user
-    embed = discord.Embed(title=f"{user.display_name}'s Profile Picture", color=0x3498db)
-    embed.set_image(url=user.avatar.url if user.avatar else user.default_avatar.url)
-    await interaction.response.send_message(embed=embed)
+    await interaction.response.send_message(f"🖼️ {user.mention}'s pfp:\n{user.avatar.url}")
 
-# ---------------------------------------
-# Slash Command: /active (Owner Only)
-# ---------------------------------------
-
-@tree.command(name="active", description="Get the Active Developer badge")
+# /active command (owner only)
+@tree.command(name="active", description="Only the dev can use this")
 async def active_command(interaction: discord.Interaction):
     if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only the chosen one may access the sacred badge 🧙", ephemeral=True)
-        return
+        await interaction.response.send_message("🚫 You're not my dev, back off.", ephemeral=True)
+    else:
+        await interaction.response.send_message("👨‍💻 Active Developer badge moment.")
 
-    embed = discord.Embed(
-        title="🌟 Active Developer",
-        description="You are an officially active developer!\nYou deserve the badge 💼✨",
-        color=0xf1c40f
-    )
-    embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/1123903293603319808.png")  # Any icon you like
-    await interaction.response.send_message(embed=embed)
+keep_alive()
+client.run(os.getenv("bot_token"))
