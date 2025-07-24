@@ -1,17 +1,21 @@
 import discord
 import random
 import os
+import asyncio  # For sleep
 from keep_alive import keep_alive
 
-TRIGGER = "vanture"  # change this to anything you want
+TRIGGER = "vanture"  # Trigger word
 
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-responses = [
-    "Absolutely!", "Not really...", "Yeah, sure", "Doubtful 🤨", "Totally!", "No way!",
-    "Maybe.", "Of course!", "Nuh uh.", "You wish.", "For sure!", "Unlikely."
+positive_responses = [
+    "Obviously.", "No doubt.", "Yep.", "100%", "Absolutely.", "For sure.", "Clearly.", "It was meant to be.", "Without a doubt."
+]
+
+negative_responses = [
+    "LMAO no.", "In your dreams, loser.", "You wish 💀", "Bro, chill.", "Yeah... not happening.", "As if.", "Delulu alert 🚨", "Keep coping.", "You're funny."
 ]
 
 emojis = ["😈", "👽", "🤖", "✨", "😎", "🙃", "🔥", "🌌", "🎲", "🪐"]
@@ -29,14 +33,22 @@ async def on_message(message):
         question = message.content[len(TRIGGER):].strip()
 
         if not question:
-            await message.reply("Ask something after the keyword, bro 🤔")
+            await message.channel.send("Ask something after the keyword, bro 🤔")
             return
 
-        answer = random.choice(responses)
-        emoji = random.choice(emojis)
+        # Choose response
+        if random.random() < 0.5:
+            answer = random.choice(positive_responses)
+        else:
+            answer = random.choice(negative_responses)
 
-        reply = f"{emoji} **You asked:** {question}\n**Answer:** {answer}"
-        await message.reply(reply)
+        emoji = random.choice(emojis)
+        reply = f"{emoji} {answer}"
+
+        # Add typing effect for 1.5 seconds
+        async with message.channel.typing():
+            await asyncio.sleep(1.5)
+            await message.channel.send(reply)
 
 keep_alive()
 client.run(os.getenv("bot_token"))
