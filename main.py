@@ -6,8 +6,6 @@ from keep_alive import keep_alive
 
 TRIGGER = "vanture"  # keyword to trigger 8ball-like replies
 
-tree = app_commands.CommandTree(discord.Client())
-
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
