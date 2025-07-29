@@ -99,7 +99,7 @@ async def on_message(message):
         await message.reply(f"{emoji} {answer}")
         return
 
-    if message.content.startswith("/pfp"):
+    if message.content.startswith("pfp"):
         await message.channel.typing()
         if message.mentions:
             user = message.mentions[0]
@@ -111,7 +111,7 @@ async def on_message(message):
         await message.reply(embed=embed)
         return
 
-    if message.content.startswith("/roast"):
+    if message.content.startswith("roast"):
         if message.mentions:
             user = message.mentions[0]
             await message.channel.typing()
@@ -121,7 +121,7 @@ async def on_message(message):
             await message.reply("Mention someone to roast them 🔥")
         return
 
-    if message.content.startswith("/compliment"):
+    if message.content.startswith("compliment"):
         if message.mentions:
             user = message.mentions[0]
             await message.channel.typing()
