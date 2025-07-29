@@ -1,6 +1,7 @@
 import discord
 import random
 import os
+import re
 from discord import app_commands
 from keep_alive import keep_alive
 
@@ -81,12 +82,14 @@ async def on_message(message):
 
     msg = message.content.lower()
 
+    # Use regex for strict phrase matching with word boundaries
     for phrase, replies in auto_replies.items():
-        if phrase in msg:
+        if re.search(rf"\b{re.escape(phrase)}\b", msg):
             await message.channel.typing()
             await message.reply(random.choice(replies))
             return
 
+    # "vanture" command (8ball-style)
     if msg.startswith(TRIGGER):
         question = message.content[len(TRIGGER):].strip()
         if not question:
@@ -99,37 +102,27 @@ async def on_message(message):
         await message.reply(f"{emoji} {answer}")
         return
 
-    if message.content.startswith("pfp"):
-        await message.channel.typing()
-        if message.mentions:
-            user = message.mentions[0]
-        else:
-            user = message.author
+# --- SLASH COMMANDS ---
 
-        embed = discord.Embed(title=f"{user.name}'s Profile Pic", color=discord.Color.blue())
-        embed.set_image(url=user.display_avatar.url)
-        await message.reply(embed=embed)
-        return
+@tree.command(name="roast", description="Roast a member")
+@app_commands.describe(user="The member to roast")
+async def roast_command(interaction: discord.Interaction, user: discord.Member):
+    burn = random.choice(roast_lines)
+    await interaction.response.send_message(f"{user.mention}, {burn}")
 
-    if message.content.startswith("roast"):
-        if message.mentions:
-            user = message.mentions[0]
-            await message.channel.typing()
-            burn = random.choice(roast_lines)
-            await message.reply(f"{user.mention}, {burn}")
-        else:
-            await message.reply("Mention someone to roast them 🔥")
-        return
+@tree.command(name="compliment", description="Compliment a member")
+@app_commands.describe(user="The member to compliment")
+async def compliment_command(interaction: discord.Interaction, user: discord.Member):
+    praise = random.choice(compliment_lines)
+    await interaction.response.send_message(f"{user.mention}, {praise}")
 
-    if message.content.startswith("compliment"):
-        if message.mentions:
-            user = message.mentions[0]
-            await message.channel.typing()
-            praise = random.choice(compliment_lines)
-            await message.reply(f"{user.mention}, {praise}")
-        else:
-            await message.reply("Mention someone to compliment them ✨")
-        return
+@tree.command(name="pfp", description="Get a user's profile picture")
+@app_commands.describe(user="The member whose profile picture you want (leave blank for yourself)")
+async def pfp_command(interaction: discord.Interaction, user: discord.Member = None):
+    user = user or interaction.user
+    embed = discord.Embed(title=f"{user.name}'s Profile Pic", color=discord.Color.blue())
+    embed.set_image(url=user.display_avatar.url)
+    await interaction.response.send_message(embed=embed)
 
 @tree.command(name="active", description="Trigger Active Developer Badge (if eligible)")
 async def active_command(interaction: discord.Interaction):
@@ -138,5 +131,6 @@ async def active_command(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("You’re not allowed to use this, lil bro 💀", ephemeral=True)
 
+# Run the bot
 keep_alive()
 client.run(os.getenv("bot_token"))
